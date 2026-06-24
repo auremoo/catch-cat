@@ -14,8 +14,13 @@ export default function App() {
   const [selectedCat, setSelectedCat] = useState(null);
   const { cats, sightings, loading, refresh } = useLocalData();
 
-  const catSightings = selectedCat
-    ? sightings.filter(s => s.catId === selectedCat.id)
+  // Always reflect latest DB state (e.g. cutoutPhoto added in background)
+  const latestSelectedCat = selectedCat
+    ? (cats.find(c => c.id === selectedCat.id) ?? selectedCat)
+    : null;
+
+  const catSightings = latestSelectedCat
+    ? sightings.filter(s => s.catId === latestSelectedCat.id)
     : [];
 
   const handleDeleteCat = async () => {
@@ -44,9 +49,9 @@ export default function App() {
       </div>
       <Navigation active={tab} onChange={setTab} />
 
-      {selectedCat && (
+      {latestSelectedCat && (
         <CatModal
-          cat={selectedCat}
+          cat={latestSelectedCat}
           sightings={catSightings}
           onClose={() => setSelectedCat(null)}
           onDelete={handleDeleteCat}

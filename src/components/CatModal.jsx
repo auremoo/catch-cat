@@ -111,7 +111,7 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
         </button>
       </div>
 
-      {showCard && <PokeCatCard cat={cat} onClose={() => setShowCard(false)} />}
+      {showCard && <PokeCatCard cat={cat} onClose={() => setShowCard(false)} onSaveCutout={url => onUpdate({ cutoutPhoto: url })} />}
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">

@@ -5,6 +5,27 @@ import { CAT_COLORS, OWNERSHIP, genId } from '../utils/catUtils';
 import { localDB } from '../db/localDB';
 import { useGeolocation } from '../hooks/useGeolocation';
 
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function processCutoutInBackground(catId, photoDataUrl) {
+  try {
+    const { removeBackground } = await import('@imgly/background-removal');
+    const blob = await removeBackground(photoDataUrl, { model: 'small', output: { format: 'image/png' } });
+    const dataUrl = await blobToDataURL(blob);
+    const fresh = await localDB.cats.get(catId);
+    if (fresh && !fresh.cutoutPhoto) {
+      await localDB.cats.put({ ...fresh, cutoutPhoto: dataUrl });
+    }
+  } catch { /* silent */ }
+}
+
 const S = {
   surface: { background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' },
   input: {
@@ -66,6 +87,7 @@ export default function CaptureTab({ cats, refresh }) {
           lat: location?.lat ?? null, lng: location?.lng ?? null,
           notes: notes.trim(), createdAt: now,
         });
+        processCutoutInBackground(newCat.id, photo);
       } else {
         const existing = cats.find(c => c.id === existingCatId);
         await localDB.cats.put({ ...existing, totalSightings: existing.totalSightings + 1, lastSeen: now });
