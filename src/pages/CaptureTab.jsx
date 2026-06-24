@@ -22,12 +22,13 @@ export default function CaptureTab({ cats, refresh }) {
   const [notes, setNotes] = useState('');
   const [isNewCat, setIsNewCat] = useState(true);
   const [existingCatId, setExistingCatId] = useState('');
+  const [isMine, setIsMine] = useState(false);
   const fileRef = useRef(null);
   const { location, status: geoStatus, request: requestGeo, reset: resetGeo } = useGeolocation();
 
   const reset = () => {
     setPhoto(null); setStep('idle'); setCatName(''); setCatColor(null);
-    setNotes(''); setIsNewCat(true); setExistingCatId(''); resetGeo();
+    setNotes(''); setIsNewCat(true); setExistingCatId(''); setIsMine(false); resetGeo();
   };
 
   const handleFile = async (e) => {
@@ -53,6 +54,7 @@ export default function CaptureTab({ cats, refresh }) {
           id: genId(),
           name: catName.trim() || `Chat #${cats.length + 1}`,
           color: catColor,
+          isMine,
           coverPhoto: photo,
           totalSightings: 1,
           firstSeen: now,
@@ -87,7 +89,12 @@ export default function CaptureTab({ cats, refresh }) {
     return (
       <div className="tab-content flex flex-col items-center justify-center page-transition" style={{ minHeight: '100%' }}>
         <div className="text-center px-8">
-          <div style={{ fontSize: 72, marginBottom: 24 }}>🐾</div>
+          <img
+            src={`${import.meta.env.BASE_URL}icon.jpg`}
+            alt="CatDex"
+            className="rounded-2xl mx-auto mb-6"
+            style={{ width: 96, height: 96, objectFit: 'cover', boxShadow: '0 0 40px rgba(245,158,11,0.3)' }}
+          />
           <h1 className="text-2xl font-bold mb-2 gradient-text" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Capturer un chat
           </h1>
@@ -263,6 +270,32 @@ export default function CaptureTab({ cats, refresh }) {
               {CAT_COLORS.find(c => c.id === catColor)?.label}
             </p>
           )}
+        </div>
+
+        {/* Ownership */}
+        <div>
+          <label className="text-xs mb-2 block" style={{ color: '#94a3b8' }}>Ce chat est…</label>
+          <div className="flex rounded-xl p-1" style={{ background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {[
+              { v: false, label: '🌍 Chat errant' },
+              { v: true,  label: '🏠 Mon chat' },
+            ].map(({ v, label }) => (
+              <button
+                key={String(v)}
+                onClick={() => setIsMine(v)}
+                className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  background: isMine === v
+                    ? v ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#6366f1,#4f46e5)'
+                    : 'transparent',
+                  color: isMine === v ? '#fff' : '#64748b',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Notes */}

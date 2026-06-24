@@ -20,6 +20,18 @@ export default function CatCard({ cat, onClick }) {
           ? <img src={cat.coverPhoto} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
           : <div className="w-full h-full flex items-center justify-center" style={{ fontSize: 48 }}>🐱</div>
         }
+        {/* Ownership badge */}
+        <div
+          className="absolute top-2 left-2 rounded-full px-1.5 py-0.5 text-xs font-semibold"
+          style={{
+            background: cat.isMine ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)',
+            color: cat.isMine ? '#34d399' : '#a5b4fc',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          {cat.isMine ? '🏠' : '🌍'}
+        </div>
+        {/* Sightings badge */}
         <div
           className="absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-semibold font-heading"
           style={{ background: 'rgba(7,9,15,0.85)', color: '#f59e0b', backdropFilter: 'blur(4px)' }}

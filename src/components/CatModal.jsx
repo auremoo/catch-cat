@@ -182,6 +182,32 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
             )}
           </div>
 
+          {/* Ownership */}
+          <div className="rounded-xl p-3" style={{ background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="text-xs mb-2" style={{ color: '#64748b' }}>Appartenance</p>
+            <div className="flex rounded-xl p-1" style={{ background: '#182035' }}>
+              {[
+                { v: false, label: '🌍 Chat errant' },
+                { v: true,  label: '🏠 Mon chat' },
+              ].map(({ v, label }) => (
+                <button
+                  key={String(v)}
+                  onClick={() => onUpdate({ isMine: v })}
+                  className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                  style={{
+                    background: cat.isMine === v
+                      ? v ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#6366f1,#4f46e5)'
+                      : 'transparent',
+                    color: cat.isMine === v ? '#fff' : '#64748b',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Mini map */}
           {withLocation.length > 0 && (
             <div className="rounded-xl overflow-hidden" style={{ height: 160 }}>

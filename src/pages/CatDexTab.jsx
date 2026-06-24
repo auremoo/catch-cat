@@ -4,16 +4,25 @@ import CatCard from '../components/CatCard';
 
 export default function CatDexTab({ cats, loading, onSelectCat }) {
   const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all'); // all | mine | stray
 
-  const filtered = cats.filter(c =>
-    c.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = cats.filter(c => {
+    const matchesQuery = c.name.toLowerCase().includes(query.toLowerCase());
+    const matchesFilter = filter === 'all' || (filter === 'mine' ? c.isMine : !c.isMine);
+    return matchesQuery && matchesFilter;
+  });
 
   return (
     <div className="tab-content page-transition">
       {/* Header */}
       <div className="px-4 pt-5 pb-3">
-        <div className="flex items-baseline gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <img
+            src={`${import.meta.env.BASE_URL}icon.jpg`}
+            alt="CatDex"
+            className="rounded-xl flex-shrink-0"
+            style={{ width: 40, height: 40, objectFit: 'cover' }}
+          />
           <h1 className="text-2xl font-bold gradient-text" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             CatDex
           </h1>
@@ -23,6 +32,29 @@ export default function CatDexTab({ cats, loading, onSelectCat }) {
           >
             {cats.length} chat{cats.length !== 1 ? 's' : ''}
           </span>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-2 mb-3">
+          {[
+            { v: 'all',   label: 'Tous' },
+            { v: 'mine',  label: '🏠 Les miens' },
+            { v: 'stray', label: '🌍 Errants' },
+          ].map(({ v, label }) => (
+            <button
+              key={v}
+              onClick={() => setFilter(v)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={{
+                background: filter === v ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.05)',
+                color: filter === v ? '#f59e0b' : '#64748b',
+                border: filter === v ? '1px solid rgba(245,158,11,0.4)' : '1px solid transparent',
+                fontFamily: "'Space Grotesk', sans-serif",
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Search */}
