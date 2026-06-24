@@ -2,6 +2,20 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, RefreshCw } from 'lucide-react';
 import { getOwnership } from '../utils/catUtils';
 
+/* ── Backgrounds kitsch ──────────────────────────────────────────── */
+
+const BASE = import.meta.env.BASE_URL;
+
+// Crée un imageStyle avec une vraie image en fond + vignette basse pour lisibilité
+const imgBg = (file) => ({
+  backgroundImage: [
+    'linear-gradient(to top,rgba(0,0,0,0.42) 0%,transparent 40%)',
+    `url(${BASE}backgrounds/${file})`,
+  ].join(','),
+  backgroundSize: 'auto, cover',
+  backgroundPosition: 'center',
+});
+
 /* ── Type data ───────────────────────────────────────────────────── */
 
 const TYPE = {
@@ -9,11 +23,7 @@ const TYPE = {
     label: 'Ténèbres', icon: '🌑', energy: '#7c3aed', eLetter: 'T',
     frame: '#6d28d9',
     cardBg: 'linear-gradient(160deg,#060612 0%,#1a1a3e 60%,#0d0d2b 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 80% 60% at 30% 80%,rgba(109,28,217,0.55) 0%,transparent 60%)',
-      'radial-gradient(circle at 75% 20%,rgba(147,51,234,0.3) 0%,transparent 45%)',
-      'linear-gradient(180deg,#0a0014 0%,#1a0538 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-space.jpeg'),  // collage espace : planètes, disco balls, étoiles
     weakness: '✨',
     dex: 'Surgit de l\'obscurité sans un bruit. Son ombre est plus sombre que la nuit la plus noire.',
   },
@@ -21,11 +31,7 @@ const TYPE = {
     label: 'Lumière', icon: '✨', energy: '#f59e0b', eLetter: 'L',
     frame: '#d97706',
     cardBg: 'linear-gradient(160deg,#4a6a88 0%,#6b8fa8 50%,#8ba8c0 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 70% 50% at 70% 15%,rgba(255,255,200,0.5) 0%,transparent 55%)',
-      'radial-gradient(circle at 20% 80%,rgba(147,210,255,0.4) 0%,transparent 40%)',
-      'linear-gradient(180deg,#c8e8ff 0%,#90c8f0 60%,#6aaae0 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-gingham.jpeg'), // vichy rose avec étoiles holographiques
     weakness: '🌑',
     dex: 'Sa fourrure rayonne d\'une lumière douce et apaisante. Les apercevoir porte bonheur.',
   },
@@ -33,11 +39,11 @@ const TYPE = {
     label: 'Feu', icon: '🔥', energy: '#ef4444', eLetter: 'F',
     frame: '#b91c1c',
     cardBg: 'linear-gradient(160deg,#3d0e00 0%,#7c2d12 55%,#9a3412 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 90% 60% at 50% 100%,rgba(220,38,38,0.6) 0%,transparent 55%)',
-      'radial-gradient(circle at 20% 30%,rgba(251,146,60,0.35) 0%,transparent 40%)',
-      'linear-gradient(180deg,#1c0900 0%,#431407 60%,#7c2d12 100%)',
-    ].join(','),
+    // Rayures candy diagonales rouge/orange
+    imageStyle: {
+      backgroundColor: '#7c2d12',
+      backgroundImage: 'repeating-linear-gradient(45deg,rgba(239,68,68,0.75) 0px 13px,rgba(154,52,18,0.75) 13px 26px)',
+    },
     weakness: '💧',
     dex: 'Sa queue enflammée ne s\'éteint jamais, même sous la pluie. Brûlures garanties.',
   },
@@ -45,11 +51,7 @@ const TYPE = {
     label: 'Air', icon: '🌫️', energy: '#94a3b8', eLetter: 'A',
     frame: '#64748b',
     cardBg: 'linear-gradient(160deg,#0f172a 0%,#1e293b 55%,#334155 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 100% 80% at 50% 60%,rgba(100,116,139,0.4) 0%,transparent 60%)',
-      'radial-gradient(circle at 80% 20%,rgba(148,163,184,0.2) 0%,transparent 50%)',
-      'linear-gradient(180deg,#0f172a 0%,#1e293b 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-ocean.jpeg'),  // poissons rouges illustrés, fond bleu ondulé Van Gogh
     weakness: '⚡',
     dex: 'Se déplace comme une brume matinale. Aussi insaisissable que le vent qui passe.',
   },
@@ -57,11 +59,14 @@ const TYPE = {
     label: 'Terre', icon: '🌰', energy: '#b45309', eLetter: 'E',
     frame: '#92400e',
     cardBg: 'linear-gradient(160deg,#1c0900 0%,#431407 55%,#6b2400 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 80% 70% at 40% 70%,rgba(180,83,9,0.5) 0%,transparent 55%)',
-      'radial-gradient(circle at 75% 25%,rgba(120,53,15,0.4) 0%,transparent 45%)',
-      'linear-gradient(180deg,#1c0900 0%,#3a1800 100%)',
-    ].join(','),
+    // Rayures tigre croisées
+    imageStyle: {
+      backgroundColor: '#3a1800',
+      backgroundImage: [
+        'repeating-linear-gradient(135deg,rgba(180,83,9,0.65) 0px 12px,transparent 12px 26px)',
+        'repeating-linear-gradient(45deg,rgba(120,53,15,0.45) 0px 8px,transparent 8px 22px)',
+      ].join(','),
+    },
     weakness: '🌿',
     dex: 'Ses rayures imitent les reflets du soleil en forêt. Maître absolu du camouflage.',
   },
@@ -69,7 +74,12 @@ const TYPE = {
     label: 'Dualité', icon: '☯️', energy: '#64748b', eLetter: 'D',
     frame: '#475569',
     cardBg: 'linear-gradient(160deg,#0f172a 0%,#1e293b 50%,#0f1629 100%)',
-    imageBg: 'linear-gradient(135deg,#1e293b 0%,#1e293b 48%,rgba(255,255,255,0.06) 50%,#0f1020 52%,#0f1020 100%)',
+    // Damier façon Harlequin
+    imageStyle: {
+      backgroundColor: '#0f1020',
+      backgroundImage: 'repeating-conic-gradient(rgba(255,255,255,0.08) 0% 25%,transparent 0% 50%)',
+      backgroundSize: '28px 28px',
+    },
     weakness: '🎲',
     dex: 'Mi-ombre mi-lumière, il incarne l\'équilibre parfait entre les forces contraires.',
   },
@@ -77,12 +87,7 @@ const TYPE = {
     label: 'Chaos', icon: '🎲', energy: '#9333ea', eLetter: 'C',
     frame: '#7c3aed',
     cardBg: 'linear-gradient(160deg,#1a0a3e 0%,#2d1b4e 50%,#431407 100%)',
-    imageBg: [
-      'radial-gradient(circle at 25% 35%,rgba(147,51,234,0.5) 0%,transparent 40%)',
-      'radial-gradient(circle at 70% 65%,rgba(194,65,12,0.45) 0%,transparent 40%)',
-      'radial-gradient(circle at 55% 20%,rgba(248,250,252,0.15) 0%,transparent 35%)',
-      'linear-gradient(180deg,#0a0520 0%,#1a0a30 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-stickers.jpeg'), // sticker bomb : arcs-en-ciel, cœurs, fraises, gemmes
     weakness: '☯️',
     dex: 'Ses trois couleurs lui confèrent trois fois plus de ruse que n\'importe quel autre félin.',
   },
@@ -90,11 +95,7 @@ const TYPE = {
     label: 'Nature', icon: '🍂', energy: '#16a34a', eLetter: 'N',
     frame: '#15803d',
     cardBg: 'linear-gradient(160deg,#052e16 0%,#14532d 55%,#1a3a10 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 80% 70% at 50% 80%,rgba(22,163,74,0.45) 0%,transparent 55%)',
-      'radial-gradient(circle at 80% 20%,rgba(101,163,13,0.3) 0%,transparent 45%)',
-      'linear-gradient(180deg,#021a0b 0%,#0a2e16 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-shells.png'),  // coquillages nacrés, nénuphars, perles, sirène
     weakness: '🔥',
     dex: 'Ses couleurs automnales se fondent dans les feuilles mortes. Chasseuse hors pair.',
   },
@@ -102,12 +103,7 @@ const TYPE = {
     label: 'Mystique', icon: '🔮', energy: '#a855f7', eLetter: 'M',
     frame: '#9333ea',
     cardBg: 'linear-gradient(160deg,#1e0533 0%,#3b0764 55%,#4c1d95 100%)',
-    imageBg: [
-      'radial-gradient(ellipse 70% 60% at 50% 30%,rgba(168,85,247,0.5) 0%,transparent 55%)',
-      'radial-gradient(circle at 20% 80%,rgba(79,70,229,0.35) 0%,transparent 45%)',
-      'radial-gradient(circle at 80% 70%,rgba(139,92,246,0.25) 0%,transparent 40%)',
-      'linear-gradient(180deg,#0e021f 0%,#1e0533 100%)',
-    ].join(','),
+    imageStyle: imgBg('bg-spiral.jpeg'), // spirale rose/orange hypnotique + poissons rouges
     weakness: '🌑',
     dex: 'Ses yeux bleus voient au-delà du monde visible. Sait ce que vous pensez avant vous.',
   },
@@ -115,7 +111,7 @@ const TYPE = {
     label: 'Neutre', icon: '⭐', energy: '#94a3b8', eLetter: '★',
     frame: '#475569',
     cardBg: 'linear-gradient(160deg,#0f172a 0%,#1e293b 55%,#334155 100%)',
-    imageBg: 'linear-gradient(180deg,#0f172a 0%,#1e293b 100%)',
+    imageStyle: imgBg('bg-tropical.jpeg'), // dauphins + hibiscus sur fond jaune soleil
     weakness: '💫',
     dex: 'Un chat d\'origine mystérieuse dont les talents réels restent encore totalement inconnus.',
   },
@@ -302,12 +298,13 @@ export default function PokeCatCard({ cat, onClose, onSaveCutout }) {
             </span>
           </div>
 
-          {/* ── IMAGE AREA ── */}
+          {/* ── IMAGE AREA — fond kitsch ── */}
           <div style={{
             margin: '0 8px', borderRadius: 10, overflow: 'hidden', height: 172,
-            position: 'relative', background: t.imageBg,
+            position: 'relative',
             border: '2.5px solid rgba(255,255,255,0.2)',
             display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            ...t.imageStyle,
           }}>
             {photoSrc && (
               <img src={photoSrc} alt={cat.name} style={{
@@ -319,10 +316,10 @@ export default function PokeCatCard({ cat, onClose, onSaveCutout }) {
                 filter: cutout ? 'drop-shadow(0 6px 20px rgba(0,0,0,0.75))' : 'none',
               }} />
             )}
-            <span style={{ position: 'absolute', bottom: 5, right: 7, fontSize: 8, color: 'rgba(255,255,255,0.32)', fontStyle: 'italic', zIndex: 2 }}>
+            <span style={{ position: 'absolute', bottom: 5, right: 7, fontSize: 8, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
               Illus. IA 🎨
             </span>
-            <span style={{ position: 'absolute', bottom: 5, left: 7, fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.28)', fontFamily: "'Space Grotesk',sans-serif", zIndex: 2 }}>
+            <span style={{ position: 'absolute', bottom: 5, left: 7, fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.4)', fontFamily: "'Space Grotesk',sans-serif", zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
               No.{num}
             </span>
           </div>
