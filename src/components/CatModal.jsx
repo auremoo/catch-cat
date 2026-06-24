@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { X, Edit2, Check, Trash2, MapPin, Eye } from 'lucide-react';
-import { getColor, formatDate, formatRelative, CAT_COLORS } from '../utils/catUtils';
+import { X, Edit2, Check, Trash2, MapPin, Sparkles } from 'lucide-react';
+import { getColor, getOwnership, formatDate, formatRelative, CAT_COLORS, OWNERSHIP } from '../utils/catUtils';
+import PokeCatCard from './PokeCatCard';
 
 const catDivIcon = L.divIcon({
   className: 'cat-marker',
@@ -32,6 +33,7 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
   const [editingColor, setEditingColor] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activePhoto, setActivePhoto] = useState(0);
+  const [showCard, setShowCard] = useState(false);
 
   const photos = sightings.filter(s => s.photo).map(s => ({ photo: s.photo, id: s.id, createdAt: s.createdAt }));
   const withLocation = sightings.filter(s => s.lat && s.lng);
@@ -93,6 +95,14 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
         </div>
 
         <button
+          onClick={() => setShowCard(true)}
+          className="p-2 rounded-xl transition-all"
+          style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}
+          title="Voir la carte"
+        >
+          <Sparkles size={18} color="#f59e0b" />
+        </button>
+        <button
           onClick={handleDelete}
           className="p-2 rounded-xl transition-colors"
           style={{ background: confirmDelete ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.06)' }}
@@ -100,6 +110,8 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
           <Trash2 size={18} color={confirmDelete ? '#f87171' : '#64748b'} />
         </button>
       </div>
+
+      {showCard && <PokeCatCard cat={cat} onClose={() => setShowCard(false)} />}
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
@@ -182,29 +194,30 @@ export default function CatModal({ cat, sightings, onClose, onDelete, onUpdate }
             )}
           </div>
 
-          {/* Ownership */}
+          {/* Ownership — 3 categories */}
           <div className="rounded-xl p-3" style={{ background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="text-xs mb-2" style={{ color: '#64748b' }}>Appartenance</p>
-            <div className="flex rounded-xl p-1" style={{ background: '#182035' }}>
-              {[
-                { v: false, label: '🌍 Chat errant' },
-                { v: true,  label: '🏠 Mon chat' },
-              ].map(({ v, label }) => (
-                <button
-                  key={String(v)}
-                  onClick={() => onUpdate({ isMine: v })}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{
-                    background: cat.isMine === v
-                      ? v ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#6366f1,#4f46e5)'
-                      : 'transparent',
-                    color: cat.isMine === v ? '#fff' : '#64748b',
-                    fontFamily: "'Space Grotesk', sans-serif",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(OWNERSHIP).map(([key, own]) => {
+                const currentKey = cat.ownership || (cat.isMine ? 'mine' : 'stray');
+                const active = currentKey === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => onUpdate({ ownership: key, isMine: key === 'mine' })}
+                    className="py-2 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1"
+                    style={{
+                      background: active ? own.bg : 'rgba(255,255,255,0.04)',
+                      border: active ? `1.5px solid ${own.color}` : '1.5px solid rgba(255,255,255,0.07)',
+                      color: active ? own.color : '#64748b',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{own.icon}</span>
+                    <span style={{ fontSize: 10 }}>{own.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

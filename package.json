@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@imgly/background-removal": "^1.4.5",
     "date-fns": "^3.6.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.441.0",

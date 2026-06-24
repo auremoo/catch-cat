@@ -11,6 +11,24 @@ export const CAT_COLORS = [
   { id: 'other',   label: 'Autre',    bg: '#4b5563', text: '#fff' },
 ];
 
+export const OWNERSHIP = {
+  mine:  { label: 'Mon chat',   icon: '🏠', color: '#10b981', bg: 'rgba(16,185,129,0.25)' },
+  known: { label: 'Chat connu', icon: '👥', color: '#38bdf8', bg: 'rgba(56,189,248,0.25)' },
+  stray: { label: 'Errant',     icon: '🌿', color: '#a78bfa', bg: 'rgba(167,139,250,0.25)' },
+};
+
+export function getOwnership(cat) {
+  if (cat.ownership) return OWNERSHIP[cat.ownership] || OWNERSHIP.stray;
+  if (cat.isMine === true) return OWNERSHIP.mine;
+  return OWNERSHIP.stray;
+}
+
+export function getOwnershipKey(cat) {
+  if (cat.ownership) return cat.ownership;
+  if (cat.isMine === true) return 'mine';
+  return 'stray';
+}
+
 export function getColor(colorId) {
   return CAT_COLORS.find(c => c.id === colorId) ?? CAT_COLORS[CAT_COLORS.length - 1];
 }
@@ -27,7 +45,7 @@ export function formatDate(ts) {
 export function formatRelative(ts) {
   if (!ts) return '—';
   const diff = Date.now() - ts;
-  if (diff < 60_000)   return "À l'instant";
+  if (diff < 60_000)    return "À l'instant";
   if (diff < 3_600_000) return `Il y a ${Math.floor(diff / 60_000)} min`;
   if (diff < 86_400_000) return `Il y a ${Math.floor(diff / 3_600_000)}h`;
   if (diff < 172_800_000) return 'Hier';
@@ -45,7 +63,7 @@ export function calculateStreaks(sightings) {
     })),
   ].sort((a, b) => b - a);
 
-  const today = (() => { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
+  const today = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); })();
 
   let current = 0;
   if (uniqueDays[0] === today || uniqueDays[0] === today - DAY) {

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Camera, MapPin, X, Check } from 'lucide-react';
 import { compressImage } from '../utils/imageUtils';
-import { CAT_COLORS, genId } from '../utils/catUtils';
+import { CAT_COLORS, OWNERSHIP, genId } from '../utils/catUtils';
 import { localDB } from '../db/localDB';
 import { useGeolocation } from '../hooks/useGeolocation';
 
@@ -16,19 +16,19 @@ const S = {
 
 export default function CaptureTab({ cats, refresh }) {
   const [photo, setPhoto] = useState(null);
-  const [step, setStep] = useState('idle'); // idle | form | saving | success
+  const [step, setStep] = useState('idle');
   const [catName, setCatName] = useState('');
   const [catColor, setCatColor] = useState(null);
   const [notes, setNotes] = useState('');
+  const [ownership, setOwnership] = useState('stray');
   const [isNewCat, setIsNewCat] = useState(true);
   const [existingCatId, setExistingCatId] = useState('');
-  const [isMine, setIsMine] = useState(false);
   const fileRef = useRef(null);
   const { location, status: geoStatus, request: requestGeo, reset: resetGeo } = useGeolocation();
 
   const reset = () => {
     setPhoto(null); setStep('idle'); setCatName(''); setCatColor(null);
-    setNotes(''); setIsNewCat(true); setExistingCatId(''); setIsMine(false); resetGeo();
+    setNotes(''); setOwnership('stray'); setIsNewCat(true); setExistingCatId(''); resetGeo();
   };
 
   const handleFile = async (e) => {
@@ -54,7 +54,7 @@ export default function CaptureTab({ cats, refresh }) {
           id: genId(),
           name: catName.trim() || `Chat #${cats.length + 1}`,
           color: catColor,
-          isMine,
+          ownership,
           coverPhoto: photo,
           totalSightings: 1,
           firstSeen: now,
@@ -84,7 +84,6 @@ export default function CaptureTab({ cats, refresh }) {
     }
   };
 
-  // Idle screen
   if (step === 'idle') {
     return (
       <div className="tab-content flex flex-col items-center justify-center page-transition" style={{ minHeight: '100%' }}>
@@ -103,7 +102,7 @@ export default function CaptureTab({ cats, refresh }) {
           </p>
           <button
             onClick={() => fileRef.current?.click()}
-            className="relative flex flex-col items-center justify-center rounded-full cursor-pointer"
+            className="flex flex-col items-center justify-center rounded-full cursor-pointer"
             style={{
               width: 140, height: 140, margin: '0 auto',
               background: 'linear-gradient(135deg, #f59e0b, #f97316)',
@@ -119,7 +118,6 @@ export default function CaptureTab({ cats, refresh }) {
     );
   }
 
-  // Success
   if (step === 'success') {
     return (
       <div className="tab-content flex flex-col items-center justify-center page-transition" style={{ minHeight: '100%' }}>
@@ -130,14 +128,15 @@ export default function CaptureTab({ cats, refresh }) {
           >
             <Check size={44} color="white" strokeWidth={2.5} />
           </div>
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9', fontFamily: "'Space Grotesk', sans-serif" }}>Chat capturé !</h2>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9', fontFamily: "'Space Grotesk', sans-serif" }}>
+            Chat capturé !
+          </h2>
           <p style={{ color: '#64748b' }}>Ajouté à votre CatDex 🐱</p>
         </div>
       </div>
     );
   }
 
-  // Saving
   if (step === 'saving') {
     return (
       <div className="tab-content flex flex-col items-center justify-center" style={{ minHeight: '100%' }}>
@@ -148,7 +147,6 @@ export default function CaptureTab({ cats, refresh }) {
     );
   }
 
-  // Form
   const canSave = catColor && (isNewCat || existingCatId);
 
   return (
@@ -156,14 +154,9 @@ export default function CaptureTab({ cats, refresh }) {
       {/* Photo preview */}
       <div className="relative" style={{ background: '#000', aspectRatio: '4/3' }}>
         <img src={photo} alt="preview" className="w-full h-full object-cover" />
-        <button
-          onClick={reset}
-          className="absolute top-3 right-3 rounded-full p-1.5"
-          style={{ background: 'rgba(0,0,0,0.6)' }}
-        >
+        <button onClick={reset} className="absolute top-3 right-3 rounded-full p-1.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
           <X size={18} color="white" />
         </button>
-        {/* Geo indicator */}
         <div
           className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs"
           style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', color: geoStatus === 'success' ? '#34d399' : '#94a3b8' }}
@@ -171,45 +164,26 @@ export default function CaptureTab({ cats, refresh }) {
           <MapPin size={11} />
           {geoStatus === 'loading' && 'Localisation…'}
           {geoStatus === 'success' && 'Localisé'}
-          {geoStatus === 'error'   && 'Sans localisation'}
-          {geoStatus === 'idle'    && 'Sans localisation'}
+          {(geoStatus === 'error' || geoStatus === 'idle') && 'Sans localisation'}
         </div>
       </div>
 
-      {/* Form */}
       <div className="p-4 space-y-4">
-
         {/* New / Existing toggle */}
-        <div className="flex rounded-xl p-1" style={{ background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' }}>
-          {[
-            { v: true,  label: '✨ Nouveau chat' },
-            { v: false, label: '🔍 Chat connu' },
-          ].map(({ v, label }) => (
-            <button
-              key={String(v)}
-              onClick={() => setIsNewCat(v)}
-              className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                background: isNewCat === v ? 'linear-gradient(135deg,#f59e0b,#f97316)' : 'transparent',
-                color: isNewCat === v ? '#fff' : '#64748b',
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
+        <div className="flex rounded-xl p-1" style={S.surface}>
+          {[{ v: true, label: '✨ Nouveau' }, { v: false, label: '🔍 Chat connu' }].map(({ v, label }) => (
+            <button key={String(v)} onClick={() => setIsNewCat(v)} className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{ background: isNewCat === v ? 'linear-gradient(135deg,#f59e0b,#f97316)' : 'transparent', color: isNewCat === v ? '#fff' : '#64748b', fontFamily: "'Space Grotesk', sans-serif" }}>
               {label}
             </button>
           ))}
         </div>
 
-        {/* Cat name (new) */}
+        {/* Cat name */}
         {isNewCat && (
           <div>
             <label className="text-xs mb-1.5 block" style={{ color: '#94a3b8' }}>Petit nom (optionnel)</label>
-            <input
-              style={S.input}
-              placeholder={`Chat #${cats.length + 1}`}
-              value={catName}
-              onChange={e => setCatName(e.target.value)}
-            />
+            <input style={S.input} placeholder={`Chat #${cats.length + 1}`} value={catName} onChange={e => setCatName(e.target.value)} />
           </div>
         )}
 
@@ -217,41 +191,52 @@ export default function CaptureTab({ cats, refresh }) {
         {!isNewCat && (
           <div>
             <label className="text-xs mb-1.5 block" style={{ color: '#94a3b8' }}>Lequel avez-vous revu ?</label>
-            {cats.length === 0 ? (
-              <p className="text-sm rounded-xl p-3" style={{ ...S.surface, color: '#64748b' }}>
-                Aucun chat dans votre CatDex pour l'instant.
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl" style={S.surface}>
-                {cats.map(c => (
-                  <button
-                    key={c.id}
-                    onClick={() => { setExistingCatId(c.id); setCatColor(c.color); }}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors"
-                    style={{ background: existingCatId === c.id ? 'rgba(245,158,11,0.12)' : 'transparent' }}
-                  >
-                    {c.coverPhoto
-                      ? <img src={c.coverPhoto} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                      : <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl flex-shrink-0" style={{ background: '#182035' }}>🐱</div>
-                    }
-                    <span className="text-sm font-medium" style={{ color: '#f1f5f9' }}>{c.name}</span>
-                    {existingCatId === c.id && <Check size={16} color="#f59e0b" className="ml-auto" />}
-                  </button>
-                ))}
-              </div>
-            )}
+            {cats.length === 0
+              ? <p className="text-sm rounded-xl p-3" style={{ ...S.surface, color: '#64748b' }}>Aucun chat dans votre CatDex.</p>
+              : <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl" style={S.surface}>
+                  {cats.map(c => (
+                    <button key={c.id} onClick={() => { setExistingCatId(c.id); setCatColor(c.color); }}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
+                      style={{ background: existingCatId === c.id ? 'rgba(245,158,11,0.12)' : 'transparent' }}>
+                      {c.coverPhoto
+                        ? <img src={c.coverPhoto} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        : <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl flex-shrink-0" style={{ background: '#182035' }}>🐱</div>
+                      }
+                      <span className="text-sm font-medium flex-1" style={{ color: '#f1f5f9' }}>{c.name}</span>
+                      {existingCatId === c.id && <Check size={16} color="#f59e0b" />}
+                    </button>
+                  ))}
+                </div>
+            }
           </div>
         )}
+
+        {/* Ownership — 3 categories */}
+        <div>
+          <label className="text-xs mb-2 block" style={{ color: '#94a3b8' }}>Ce chat est…</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(OWNERSHIP).map(([key, own]) => (
+              <button key={key} onClick={() => setOwnership(key)}
+                className="py-2.5 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1"
+                style={{
+                  background: ownership === key ? own.bg : 'rgba(255,255,255,0.04)',
+                  border: ownership === key ? `1.5px solid ${own.color}` : '1.5px solid rgba(255,255,255,0.07)',
+                  color: ownership === key ? own.color : '#64748b',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}>
+                <span style={{ fontSize: 20 }}>{own.icon}</span>
+                <span style={{ fontSize: 11 }}>{own.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Color picker */}
         <div>
           <label className="text-xs mb-2 block" style={{ color: '#94a3b8' }}>Couleur du chat *</label>
           <div className="flex flex-wrap gap-2.5">
             {CAT_COLORS.map(c => (
-              <button
-                key={c.id}
-                onClick={() => setCatColor(c.id)}
-                title={c.label}
+              <button key={c.id} onClick={() => setCatColor(c.id)} title={c.label}
                 className={`rounded-full transition-all${c.swatch ? ` swatch-${c.swatch}` : ''}`}
                 style={{
                   width: 36, height: 36,
@@ -260,68 +245,30 @@ export default function CaptureTab({ cats, refresh }) {
                   outline: catColor === c.id ? '2px solid rgba(245,158,11,0.5)' : 'none',
                   outlineOffset: 2,
                   transform: catColor === c.id ? 'scale(1.2)' : 'scale(1)',
-                  transition: 'transform 0.15s, outline 0.1s',
+                  transition: 'transform 0.15s',
                 }}
               />
             ))}
           </div>
-          {catColor && (
-            <p className="text-xs mt-1.5" style={{ color: '#64748b' }}>
-              {CAT_COLORS.find(c => c.id === catColor)?.label}
-            </p>
-          )}
-        </div>
-
-        {/* Ownership */}
-        <div>
-          <label className="text-xs mb-2 block" style={{ color: '#94a3b8' }}>Ce chat est…</label>
-          <div className="flex rounded-xl p-1" style={{ background: '#0f1626', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {[
-              { v: false, label: '🌍 Chat errant' },
-              { v: true,  label: '🏠 Mon chat' },
-            ].map(({ v, label }) => (
-              <button
-                key={String(v)}
-                onClick={() => setIsMine(v)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-                style={{
-                  background: isMine === v
-                    ? v ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#6366f1,#4f46e5)'
-                    : 'transparent',
-                  color: isMine === v ? '#fff' : '#64748b',
-                  fontFamily: "'Space Grotesk', sans-serif",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {catColor && <p className="text-xs mt-1.5" style={{ color: '#64748b' }}>{CAT_COLORS.find(c => c.id === catColor)?.label}</p>}
         </div>
 
         {/* Notes */}
         <div>
           <label className="text-xs mb-1.5 block" style={{ color: '#94a3b8' }}>Notes (optionnel)</label>
-          <textarea
-            style={{ ...S.input, resize: 'none', minHeight: 72 }}
+          <textarea style={{ ...S.input, resize: 'none', minHeight: 72 }}
             placeholder="Quartier, comportement, particularités…"
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            rows={3}
-          />
+            value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
         </div>
 
-        {/* Save button */}
-        <button
-          onClick={handleSave}
-          disabled={!canSave}
-          className="w-full py-4 rounded-2xl font-bold text-base transition-all"
+        {/* Save */}
+        <button onClick={handleSave} disabled={!canSave} className="w-full py-4 rounded-2xl font-bold text-base transition-all"
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
             background: canSave ? 'linear-gradient(135deg, #f59e0b, #f97316)' : 'rgba(255,255,255,0.06)',
             color: canSave ? '#fff' : '#475569',
             boxShadow: canSave ? '0 4px 24px rgba(245,158,11,0.35)' : 'none',
-          }}
-        >
+          }}>
           {canSave ? '🐾 Ajouter au CatDex' : 'Choisissez une couleur'}
         </button>
 

@@ -1,7 +1,8 @@
-import { getColor, formatRelative } from '../utils/catUtils';
+import { getColor, getOwnership, formatRelative } from '../utils/catUtils';
 
 export default function CatCard({ cat, onClick }) {
   const color = getColor(cat.color);
+  const own = getOwnership(cat);
 
   return (
     <div
@@ -10,7 +11,7 @@ export default function CatCard({ cat, onClick }) {
       style={{
         background: '#0f1626',
         border: '1px solid rgba(255,255,255,0.07)',
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        transition: 'transform 0.15s',
       }}
       onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
       onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -23,17 +24,13 @@ export default function CatCard({ cat, onClick }) {
         {/* Ownership badge */}
         <div
           className="absolute top-2 left-2 rounded-full px-1.5 py-0.5 text-xs font-semibold"
-          style={{
-            background: cat.isMine ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)',
-            color: cat.isMine ? '#34d399' : '#a5b4fc',
-            backdropFilter: 'blur(4px)',
-          }}
+          style={{ background: own.bg, color: own.color, backdropFilter: 'blur(4px)' }}
         >
-          {cat.isMine ? '🏠' : '🌍'}
+          {own.icon}
         </div>
         {/* Sightings badge */}
         <div
-          className="absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-semibold font-heading"
+          className="absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-semibold"
           style={{ background: 'rgba(7,9,15,0.85)', color: '#f59e0b', backdropFilter: 'blur(4px)' }}
         >
           ×{cat.totalSightings}
