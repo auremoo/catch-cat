@@ -1,3 +1,4 @@
+// CatDex — Auteurs : Margot Tournier & Aurélien Moote - Moo - 2026 — Licence MIT
 import { useState } from 'react';
 import { useLocalData } from './hooks/useLocalData';
 import { localDB } from './db/localDB';

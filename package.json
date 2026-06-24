@@ -1,6 +1,9 @@
 {
   "name": "catdex",
   "version": "1.0.0",
+  "description": "Le Pokémon GO des chats — capturez et collectionnez les chats que vous croisez",
+  "author": "Margot Tournier & Aurélien Moote - Moo - 2026",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

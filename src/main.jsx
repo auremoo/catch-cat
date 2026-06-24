@@ -1,3 +1,4 @@
+// CatDex — Auteurs : Margot Tournier & Aurélien Moote - Moo - 2026 — Licence MIT
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
