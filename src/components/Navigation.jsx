@@ -1,10 +1,11 @@
-import { BookOpen, Camera, Map, BarChart2 } from 'lucide-react';
+import { BookOpen, Camera, Map, BarChart2, Settings } from 'lucide-react';
 
 const TABS = [
-  { id: 'catdex',  icon: BookOpen,   label: 'CatDex' },
-  { id: 'capture', icon: Camera,     label: 'Capturer', special: true },
-  { id: 'map',     icon: Map,        label: 'Carte' },
-  { id: 'stats',   icon: BarChart2,  label: 'Stats' },
+  { id: 'catdex',   icon: BookOpen,  label: 'CatDex' },
+  { id: 'capture',  icon: Camera,    label: 'Capturer', special: true },
+  { id: 'map',      icon: Map,       label: 'Carte' },
+  { id: 'stats',    icon: BarChart2, label: 'Stats' },
+  { id: 'settings', icon: Settings,  label: 'Réglages' },
 ];
 
 export default function Navigation({ active, onChange }) {

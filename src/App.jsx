@@ -8,6 +8,7 @@ import CaptureTab from './pages/CaptureTab';
 import CatDexTab from './pages/CatDexTab';
 import MapTab from './pages/MapTab';
 import StatsTab from './pages/StatsTab';
+import SettingsTab from './pages/SettingsTab';
 
 export default function App() {
   const [tab, setTab] = useState('catdex');
@@ -45,7 +46,8 @@ export default function App() {
         {tab === 'catdex'  && <CatDexTab  key="catdex"  {...commonProps} />}
         {tab === 'capture' && <CaptureTab key="capture" cats={cats} refresh={refresh} />}
         {tab === 'map'     && <MapTab     key="map"     {...commonProps} />}
-        {tab === 'stats'   && <StatsTab   key="stats"   cats={cats} sightings={sightings} />}
+        {tab === 'stats'    && <StatsTab    key="stats"    cats={cats} sightings={sightings} />}
+        {tab === 'settings' && <SettingsTab key="settings" />}
       </div>
       <Navigation active={tab} onChange={setTab} />
 
